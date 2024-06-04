@@ -11,6 +11,7 @@ GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
 model = genai.GenerativeModel()
+chat=model.start_chat(history=[])
 
 from langchain.schema import(
     SystemMessage,
@@ -36,11 +37,25 @@ def main():
 
     
 
-    with st.sidebar:
-        user_input=st.text_input("Your message: ",key="user_input")
-    if user_input:
+   
+    user_input=st.text_input("Your message: ",key="user_input")
+    submit=st.button("Generate response")
+    if 'chat_history' not in st.session_state:
+        st.session_state['chat_history'] = []
 
-  
+    def get_response(question):
+        response = chat.send_message(question, stream=True)
+        return response
+    if 'chat_history' not in st.session_state:
+            st.session_state['chat_history'] = []
+    if submit and user_input:
+        response=get_response(user_input)
+        st.session_state['chat_history'].append(user_input)
+        for chunk in response:
+            st.write(chunk.text)
+            st.session_state['chat_history'].append(chunk.text)
+    st.subheader("Your chat history is: ")
+
    
 if __name__=="__main__":
     main()

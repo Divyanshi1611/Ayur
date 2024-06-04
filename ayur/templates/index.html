@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Homepage{% endblock %}
+{% block css %}{% static 'styles.css' %}{% endblock %}
+{% block body %}
+<div class="p1">
+    <div class="video-container">
+        <video autoplay muted loop class="video" style="height:100%;  width: 100%;">
+            <source src={%static 'img/Babble.mp4' %} alt="video">
+        </video>
+        <a href="{% url 'chat' %}">
+            <div class="para">
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}
