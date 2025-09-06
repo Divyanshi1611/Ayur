@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AYUR - AI Health Assistant | Ayurvedic Medicine Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        
+        .ayur-gradient {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+        
+        .chat-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-container::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        
+        .chat-container::-webkit-scrollbar-thumb {
+            background: #10b981;
+            border-radius: 10px;
+        }
+        
+        .typing-indicator {
+            display: none;
+        }
+        
+        .typing-indicator.active {
+            display: flex;
+        }
+        
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #10b981;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+        
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .pulse-green {
+            animation: pulse-green 2s infinite;
+        }
+        
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        }
+        
+        .medicine-card {
+            transition: all 0.3s ease;
+        }
+        
+        .medicine-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .reminder-notification {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        @keyframes slideInRight {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        .floating-delayed {
+            animation: floating 3s ease-in-out infinite;
+            animation-delay: 1.5s;
+        }
+        
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        .rotate-slow {
+            animation: rotate-slow 20s linear infinite;
+        }
+        
+        @keyframes rotate-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 flex items-center">
+                        <div class="w-10 h-10 ayur-gradient rounded-full flex items-center justify-center mr-3">
+                            <span class="text-white font-bold text-lg">🌿</span>
+                        </div>
+                        <span class="text-2xl font-bold text-gray-800">AYUR</span>
+                        <span class="text-sm text-gray-500 ml-2">Health Assistant</span>
+                    </div>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#home" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Home</a>
+                        <a href="#chatbot" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">AI Assistant</a>
+                        <a href="#tracker" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Medicine Tracker</a>
+                        <a href="#remedies" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Remedies</a>
+                        <a href="#features" class="nav-link text-gray-700 hover:text-green-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Features</a>
+                    </div>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-btn" class="text-gray-700 hover:text-green-600 focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="gradient-bg min-h-screen flex items-center justify-center relative overflow-hidden pt-16">
+        <!-- Background decorative elements -->
+        <div class="absolute inset-0 overflow-hidden">
+            <div class="absolute top-20 left-10 w-20 h-20 opacity-10 floating">
+                <svg viewBox="0 0 100 100" class="w-full h-full text-white">
+                    <path d="M50 10 Q30 30 50 50 Q70 30 50 10" fill="currentColor"/>
+                    <path d="M50 50 Q30 70 50 90 Q70 70 50 50" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="absolute top-40 right-20 w-16 h-16 opacity-10 rotate-slow">
+                <svg viewBox="0 0 100 100" class="w-full h-full text-white">
+                    <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width="8"/>
+                    <circle cx="50" cy="50" r="20" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="absolute bottom-40 left-20 w-24 h-24 opacity-10 floating-delayed">
+                <svg viewBox="0 0 100 100" class="w-full h-full text-white">
+                    <path d="M20 50 Q50 20 80 50 Q50 80 20 50" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="absolute bottom-20 right-10 w-18 h-18 opacity-10 floating">
+                <svg viewBox="0 0 100 100" class="w-full h-full text-white">
+                    <polygon points="50,15 85,85 15,85" fill="currentColor"/>
+                </svg>
+            </div>
+            <!-- Additional floating leaves -->
+            <div class="absolute top-1/3 left-1/4 w-12 h-12 opacity-20 floating-delayed">
+                <svg viewBox="0 0 50 50" class="w-full h-full text-green-300">
+                    <path d="M25 5 Q15 15 25 25 Q35 15 25 5" fill="currentColor"/>
+                    <path d="M25 25 Q15 35 25 45 Q35 35 25 25" fill="currentColor"/>
+                </svg>
+            </div>
+            <div class="absolute top-2/3 right-1/3 w-10 h-10 opacity-20 floating">
+                <svg viewBox="0 0 50 50" class="w-full h-full text-green-300">
+                    <ellipse cx="25" cy="25" rx="20" ry="10" fill="currentColor"/>
+                    <line x1="25" y1="15" x2="25" y2="35" stroke="white" stroke-width="2"/>
+                </svg>
+            </div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+            <div class="mb-8">
+                <div class="w-32 h-32 mx-auto mb-6 pulse-green">
+                    <svg viewBox="0 0 200 200" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="heroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Medical cross with leaves -->
+                        <circle cx="100" cy="100" r="90" fill="url(#heroGradient)" opacity="0.1"/>
+                        <circle cx="100" cy="100" r="70" fill="url(#heroGradient)" opacity="0.2"/>
+                        <circle cx="100" cy="100" r="50" fill="url(#heroGradient)"/>
+                        
+                        <!-- Stylized medical cross -->
+                        <rect x="90" y="70" width="20" height="60" fill="white" rx="10"/>
+                        <rect x="70" y="90" width="60" height="20" fill="white" rx="10"/>
+                        
+                        <!-- Decorative leaves -->
+                        <path d="M60 60 Q50 50 40 60 Q50 70 60 60" fill="#22c55e"/>
+                        <path d="M160 60 Q170 50 180 60 Q170 70 160 60" fill="#22c55e"/>
+                        <path d="M60 140 Q50 150 40 140 Q50 130 60 140" fill="#22c55e"/>
+                        <path d="M160 140 Q170 150 180 140 Q170 130 160 140" fill="#22c55e"/>
+                    </svg>
+                </div>
+            </div>
+            <h1 class="text-5xl md:text-7xl font-bold text-white mb-6 fade-in">
+                AYUR Health
+                <span class="block text-yellow-300">AI Assistant</span>
+            </h1>
+            <p class="text-xl md:text-2xl text-white mb-8 max-w-4xl mx-auto fade-in">
+                Your personal AI-powered health companion. Track medicines, get Ayurvedic tips, and never miss a checkup again. Reducing missed reminders by 60% for 100+ users.
+            </p>
+            <div class="space-x-4 fade-in">
+                <button onclick="scrollToChat()" class="bg-white text-green-700 px-8 py-4 rounded-full font-semibold text-lg hover:bg-green-50 transition-colors transform hover:scale-105">
+                    Start Chatting
+                </button>
+                <button onclick="scrollToTracker()" class="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white hover:text-green-700 transition-colors">
+                    Track Medicine
+                </button>
+            </div>
+            
+            <!-- Stats -->
+            <div class="grid md:grid-cols-3 gap-8 mt-16 fade-in">
+                <div class="bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-6">
+                    <div class="text-3xl font-bold text-yellow-300">60%</div>
+                    <div class="text-white">Reduction in Missed Reminders</div>
+                </div>
+                <div class="bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-6">
+                    <div class="text-3xl font-bold text-yellow-300">100+</div>
+                    <div class="text-white">Active Users</div>
+                </div>
+                <div class="bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-6">
+                    <div class="text-3xl font-bold text-yellow-300">24/7</div>
+                    <div class="text-white">AI Health Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Chatbot Section -->
+    <section id="chatbot" class="py-20 bg-white">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <div class="w-24 h-24 mx-auto mb-6">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="chatGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Chat bubble with brain -->
+                        <ellipse cx="50" cy="60" rx="35" ry="25" fill="url(#chatGradient)"/>
+                        <circle cx="50" cy="30" r="20" fill="url(#chatGradient)" opacity="0.8"/>
+                        
+                        <!-- Brain pattern -->
+                        <path d="M40 25 Q45 20 50 25 Q55 20 60 25 Q55 30 50 25 Q45 30 40 25" fill="white" opacity="0.9"/>
+                        <circle cx="45" cy="27" r="2" fill="white"/>
+                        <circle cx="55" cy="27" r="2" fill="white"/>
+                        
+                        <!-- Chat dots -->
+                        <circle cx="42" cy="60" r="3" fill="white"/>
+                        <circle cx="50" cy="60" r="3" fill="white"/>
+                        <circle cx="58" cy="60" r="3" fill="white"/>
+                        
+                        <!-- Floating leaves -->
+                        <path d="M20 20 Q15 15 10 20 Q15 25 20 20" fill="#22c55e" opacity="0.7"/>
+                        <path d="M85 35 Q90 30 95 35 Q90 40 85 35" fill="#22c55e" opacity="0.7"/>
+                    </svg>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6 fade-in">AI Health Assistant</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto fade-in">
+                    Chat with our AI-powered assistant for personalized Ayurvedic tips, medicine reminders, and health guidance.
+                </p>
+            </div>
+            
+            <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl shadow-2xl overflow-hidden fade-in">
+                <!-- Chat Header -->
+                <div class="ayur-gradient p-4 text-white">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-3">
+                            <span class="text-lg">🌿</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">AYUR Assistant</h3>
+                            <p class="text-sm opacity-90">Online • Ready to help</p>
+                        </div>
+                        <div class="ml-auto">
+                            <button onclick="clearChat()" class="bg-white bg-opacity-20 hover:bg-opacity-30 px-3 py-1 rounded-full text-sm transition-colors">
+                                Clear Chat
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Messages -->
+                <div id="chat-messages" class="chat-container p-6 bg-white">
+                    <div class="flex items-start mb-4">
+                        <div class="w-8 h-8 ayur-gradient rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <span class="text-white text-sm">🌿</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                            <p class="text-gray-800">Hello! I'm your AYUR Health Assistant. I can help you with:</p>
+                            <ul class="mt-2 text-sm text-gray-600">
+                                <li>• Medicine reminders</li>
+                                <li>• Ayurvedic tips</li>
+                                <li>• Home remedies</li>
+                                <li>• Health tracking</li>
+                            </ul>
+                            <p class="mt-2 text-gray-800">How can I assist you today?</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Typing Indicator -->
+                    <div id="typing-indicator" class="typing-indicator items-start mb-4">
+                        <div class="w-8 h-8 ayur-gradient rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                            <span class="text-white text-sm">🌿</span>
+                        </div>
+                        <div class="bg-gray-100 rounded-lg p-3">
+                            <div class="flex space-x-1">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Chat Input -->
+                <div class="border-t bg-gray-50 p-4">
+                    <div class="flex space-x-3">
+                        <input 
+                            type="text" 
+                            id="chat-input" 
+                            placeholder="Ask about medicines, remedies, or health tips..."
+                            class="flex-1 border border-gray-300 rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                            onkeypress="handleKeyPress(event)"
+                        >
+                        <button 
+                            onclick="sendMessage()" 
+                            class="ayur-gradient text-white px-6 py-2 rounded-full hover:opacity-90 transition-opacity font-medium"
+                        >
+                            Send
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="flex flex-wrap gap-2 mt-3">
+                        <button onclick="sendQuickMessage('What are some home remedies for cold?')" class="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-50 transition-colors">
+                            Cold Remedies
+                        </button>
+                        <button onclick="sendQuickMessage('Set medicine reminder')" class="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-50 transition-colors">
+                            Set Reminder
+                        </button>
+                        <button onclick="sendQuickMessage('Ayurvedic tips for digestion')" class="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-50 transition-colors">
+                            Digestion Tips
+                        </button>
+                        <button onclick="sendQuickMessage('Track my health progress')" class="bg-white border border-gray-300 text-gray-700 px-3 py-1 rounded-full text-sm hover:bg-gray-50 transition-colors">
+                            Health Progress
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Medicine Tracker Section -->
+    <section id="tracker" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <div class="w-24 h-24 mx-auto mb-6">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="trackerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Medicine bottle -->
+                        <rect x="35" y="25" width="30" height="50" rx="5" fill="url(#trackerGradient)"/>
+                        <rect x="40" y="20" width="20" height="10" rx="3" fill="#047857"/>
+                        
+                        <!-- Pills inside bottle -->
+                        <circle cx="45" cy="35" r="3" fill="white" opacity="0.9"/>
+                        <circle cx="55" cy="40" r="3" fill="white" opacity="0.9"/>
+                        <circle cx="50" cy="50" r="3" fill="white" opacity="0.9"/>
+                        <circle cx="45" cy="60" r="3" fill="white" opacity="0.9"/>
+                        
+                        <!-- Clock/reminder symbol -->
+                        <circle cx="75" cy="30" r="12" fill="#fbbf24" opacity="0.9"/>
+                        <line x1="75" y1="25" x2="75" y2="30" stroke="white" stroke-width="2"/>
+                        <line x1="75" y1="30" x2="78" y2="33" stroke="white" stroke-width="2"/>
+                        
+                        <!-- Notification dots -->
+                        <circle cx="20" cy="40" r="4" fill="#ef4444" opacity="0.8"/>
+                        <circle cx="20" cy="40" r="6" fill="#ef4444" opacity="0.3"/>
+                        
+                        <!-- Decorative leaves -->
+                        <path d="M15 70 Q10 65 5 70 Q10 75 15 70" fill="#22c55e"/>
+                        <path d="M90 70 Q95 65 100 70 Q95 75 90 70" fill="#22c55e"/>
+                    </svg>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6 fade-in">Medicine Tracker</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto fade-in">
+                    Never miss a dose again. Track your medicines and get smart reminders.
+                </p>
+            </div>
+            
+            <div class="grid lg:grid-cols-2 gap-8">
+                <!-- Add Medicine Form -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 fade-in">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-6">Add New Medicine</h3>
+                    <form id="medicine-form" class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Medicine Name</label>
+                            <input type="text" id="medicine-name" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="e.g., Ashwagandha">
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Dosage</label>
+                                <input type="text" id="medicine-dosage" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="e.g., 500mg">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Frequency</label>
+                                <select id="medicine-frequency" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                    <option value="once">Once daily</option>
+                                    <option value="twice">Twice daily</option>
+                                    <option value="thrice">Three times daily</option>
+                                    <option value="custom">Custom</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                                <input type="date" id="medicine-start" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Duration (days)</label>
+                                <input type="number" id="medicine-duration" class="w-full border border-gray-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="30">
+                            </div>
+                        </div>
+                        <button type="submit" class="w-full ayur-gradient text-white py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity">
+                            Add Medicine
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Current Medicines -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 fade-in">
+                    <h3 class="text-2xl font-semibold text-gray-800 mb-6">Your Medicines</h3>
+                    <div id="medicines-list" class="space-y-4">
+                        <!-- Sample Medicine Cards -->
+                        <div class="medicine-card bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 mr-3">
+                                        <svg viewBox="0 0 50 50" class="w-full h-full">
+                                            <rect x="15" y="10" width="20" height="30" rx="3" fill="#10b981"/>
+                                            <rect x="18" y="8" width="14" height="6" rx="2" fill="#047857"/>
+                                            <circle cx="22" cy="18" r="2" fill="white" opacity="0.9"/>
+                                            <circle cx="28" cy="22" r="2" fill="white" opacity="0.9"/>
+                                            <circle cx="25" cy="28" r="2" fill="white" opacity="0.9"/>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Ashwagandha</h4>
+                                        <p class="text-sm text-gray-600">500mg • Twice daily</p>
+                                        <p class="text-xs text-gray-500 mt-1">Next dose: Today 2:00 PM</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="markTaken(this)" class="bg-green-500 text-white px-3 py-1 rounded-full text-xs hover:bg-green-600 transition-colors">
+                                        Mark Taken
+                                    </button>
+                                    <button onclick="removeMedicine(this)" class="bg-red-500 text-white px-3 py-1 rounded-full text-xs hover:bg-red-600 transition-colors">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="medicine-card bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg p-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex items-center">
+                                    <div class="w-12 h-12 mr-3">
+                                        <svg viewBox="0 0 50 50" class="w-full h-full">
+                                            <circle cx="25" cy="25" r="18" fill="#f59e0b"/>
+                                            <circle cx="25" cy="25" r="12" fill="#d97706"/>
+                                            <circle cx="20" cy="20" r="3" fill="white" opacity="0.8"/>
+                                            <circle cx="30" cy="20" r="3" fill="white" opacity="0.8"/>
+                                            <circle cx="25" cy="30" r="3" fill="white" opacity="0.8"/>
+                                            <text x="25" y="28" text-anchor="middle" fill="white" font-size="8" font-weight="bold">T</text>
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">Triphala</h4>
+                                        <p class="text-sm text-gray-600">1 tablet • Once daily</p>
+                                        <p class="text-xs text-gray-500 mt-1">Next dose: Tomorrow 8:00 AM</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2">
+                                    <button onclick="markTaken(this)" class="bg-green-500 text-white px-3 py-1 rounded-full text-xs hover:bg-green-600 transition-colors">
+                                        Mark Taken
+                                    </button>
+                                    <button onclick="removeMedicine(this)" class="bg-red-500 text-white px-3 py-1 rounded-full text-xs hover:bg-red-600 transition-colors">
+                                        Remove
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Ayurvedic Remedies Section -->
+    <section id="remedies" class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-12">
+                <div class="w-24 h-24 mx-auto mb-6">
+                    <svg viewBox="0 0 100 100" class="w-full h-full">
+                        <defs>
+                            <linearGradient id="remedyGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Mortar and pestle -->
+                        <ellipse cx="50" cy="70" rx="25" ry="15" fill="url(#remedyGradient)"/>
+                        <ellipse cx="50" cy="65" rx="20" ry="12" fill="#047857"/>
+                        
+                        <!-- Pestle -->
+                        <ellipse cx="65" cy="35" rx="8" ry="4" fill="#6b7280" transform="rotate(45 65 35)"/>
+                        <rect x="60" y="30" width="6" height="25" fill="#6b7280" transform="rotate(45 65 35)"/>
+                        
+                        <!-- Herbs and spices -->
+                        <circle cx="45" cy="60" r="2" fill="#fbbf24"/>
+                        <circle cx="52" cy="58" r="2" fill="#ef4444"/>
+                        <circle cx="48" cy="65" r="2" fill="#22c55e"/>
+                        
+                        <!-- Floating herb leaves -->
+                        <path d="M20 25 Q15 20 10 25 Q15 30 20 25" fill="#22c55e"/>
+                        <path d="M30 15 Q25 10 20 15 Q25 20 30 15" fill="#22c55e"/>
+                        <path d="M80 20 Q85 15 90 20 Q85 25 80 20" fill="#22c55e"/>
+                        
+                        <!-- Steam/aroma lines -->
+                        <path d="M40 45 Q42 40 40 35" stroke="#10b981" stroke-width="2" fill="none" opacity="0.6"/>
+                        <path d="M50 45 Q52 40 50 35" stroke="#10b981" stroke-width="2" fill="none" opacity="0.6"/>
+                        <path d="M60 45 Q62 40 60 35" stroke="#10b981" stroke-width="2" fill="none" opacity="0.6"/>
+                    </svg>
+                </div>
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6 fade-in">Ayurvedic Remedies</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto fade-in">
+                    Discover time-tested home remedies for common health conditions.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-6 border border-green-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="text-3xl mb-4">🍯</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Cold & Cough</h3>
+                    <p class="text-gray-600 mb-4">Mix honey with ginger juice and turmeric. Take 1 tsp three times daily.</p>
+                    <button onclick="getRemedyDetails('cold')" class="text-green-600 font-medium hover:text-green-700 transition-colors">
+                        Learn More →
+                    </button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-lg p-6 border border-yellow-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="text-3xl mb-4">🌿</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Digestion</h3>
+                    <p class="text-gray-600 mb-4">Drink warm water with lemon and ginger 30 minutes before meals.</p>
+                    <button onclick="getRemedyDetails('digestion')" class="text-yellow-600 font-medium hover:text-yellow-700 transition-colors">
+                        Learn More →
+                    </button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-6 border border-purple-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="text-3xl mb-4">🧘‍♀️</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Stress Relief</h3>
+                    <p class="text-gray-600 mb-4">Practice deep breathing with Ashwagandha tea before bedtime.</p>
+                    <button onclick="getRemedyDetails('stress')" class="text-purple-600 font-medium hover:text-purple-700 transition-colors">
+                        Learn More →
+                    </button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="text-3xl mb-4">😴</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Better Sleep</h3>
+                    <p class="text-gray-600 mb-4">Warm milk with a pinch of nutmeg and cardamom before bed.</p>
+                    <button onclick="getRemedyDetails('sleep')" class="text-blue-600 font-medium hover:text-blue-700 transition-colors">
+                        Learn More →
+                    </button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-red-50 to-pink-50 rounded-lg p-6 border border-red-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="text-3xl mb-4">💪</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Joint Pain</h3>
+                    <p class="text-gray-600 mb-4">Apply warm sesame oil with turmeric to affected areas.</p>
+                    <button onclick="getRemedyDetails('joint')" class="text-red-600 font-medium hover:text-red-700 transition-colors">
+                        Learn More →
+                    </button>
+                </div>
+                
+                <div class="bg-gradient-to-br from-teal-50 to-cyan-50 rounded-lg p-6 border border-teal-200 hover:shadow-lg transition-shadow fade-in">
+                    <div class="text-3xl mb-4">✨</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Skin Care</h3>
+                    <p class="text-gray-600 mb-4">Face mask with turmeric, honey, and rose water for glowing skin.</p>
+                    <button onclick="getRemedyDetails('skin')" class="text-teal-600 font-medium hover:text-teal-700 transition-colors">
+                        Learn More →
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-gray-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl md:text-5xl font-bold text-gray-800 mb-6 fade-in">Key Features</h2>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto fade-in">
+                    Everything you need for comprehensive health management in one place.
+                </p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow fade-in">
+                    <div class="w-16 h-16 ayur-gradient rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">🌿</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">AI-Powered Chat</h3>
+                    <p class="text-gray-600">Get instant responses to your health queries with our Gemini API integration.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow fade-in">
+                    <div class="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">⏰</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Smart Reminders</h3>
+                    <p class="text-gray-600">Never miss a dose with intelligent medicine and checkup reminders.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow fade-in">
+                    <div class="w-16 h-16 bg-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">🌿</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Ayurvedic Tips</h3>
+                    <p class="text-gray-600">Personalized Ayurvedic recommendations based on your health condition.</p>
+                </div>
+                
+                <div class="text-center p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow fade-in">
+                    <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="text-2xl">📊</span>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-3">Health Tracking</h3>
+                    <p class="text-gray-600">Monitor your progress and maintain detailed health records.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <div class="w-10 h-10 ayur-gradient rounded-full flex items-center justify-center mr-3">
+                            <span class="text-white font-bold">🌿</span>
+                        </div>
+                        <span class="text-2xl font-bold">AYUR</span>
+                    </div>
+                    <p class="text-gray-400">AI-powered health assistant for modern Ayurvedic wellness.</p>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Features</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#chatbot" class="text-gray-400 hover:text-white transition-colors">AI Assistant</a></li>
+                        <li><a href="#tracker" class="text-gray-400 hover:text-white transition-colors">Medicine Tracker</a></li>
+                        <li><a href="#remedies" class="text-gray-400 hover:text-white transition-colors">Home Remedies</a></li>
+                        <li><a href="#features" class="text-gray-400 hover:text-white transition-colors">Smart Reminders</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Health Topics</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Ayurvedic Medicine</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Natural Remedies</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Wellness Tips</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Preventive Care</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h4 class="text-lg font-semibold mb-4">Connect</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/>
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M22.46 6c-.77.35-1.6.58-2.46.69.88-.53 1.56-1.37 1.88-2.38-.83.5-1.75.85-2.72 1.05C18.37 4.5 17.26 4 16 4c-2.35 0-4.27 1.92-4.27 4.29 0 .34.04.67.11.98C8.28 9.09 5.11 7.38 3 4.79c-.37.63-.58 1.37-.58 2.15 0 1.49.75 2.81 1.91 3.56-.71 0-1.37-.2-1.95-.5v.03c0 2.08 1.48 3.82 3.44 4.21a4.22 4.22 0 0 1-1.93.07 4.28 4.28 0 0 0 4 2.98 8.521 8.521 0 0 1-5.33 1.84c-.34 0-.68-.02-1.02-.06C3.44 20.29 5.7 21 8.12 21 16 21 20.33 14.46 20.33 8.79c0-.19 0-.37-.01-.56.84-.6 1.56-1.36 2.14-2.23z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center">
+                <p class="text-gray-400">&copy; 2024 AYUR Health Assistant. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Notification Container -->
+    <div id="notification-container" class="fixed top-20 right-4 z-50 space-y-2"></div>
+
+    <script>
+        // Chat functionality
+        let chatHistory = [];
+        
+        function scrollToChat() {
+            document.getElementById('chatbot').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function scrollToTracker() {
+            document.getElementById('tracker').scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+            if (message) {
+                addUserMessage(message);
+                input.value = '';
+                simulateAIResponse(message);
+            }
+        }
+        
+        function sendQuickMessage(message) {
+            document.getElementById('chat-input').value = message;
+            sendMessage();
+        }
+        
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+        
+        function addUserMessage(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start mb-4 justify-end';
+            messageDiv.innerHTML = `
+                <div class="bg-green-500 text-white rounded-lg p-3 max-w-xs">
+                    <p>${message}</p>
+                </div>
+                <div class="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center ml-3 flex-shrink-0">
+                    <span class="text-gray-600 text-sm">👤</span>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatHistory.push({ type: 'user', message: message });
+        }
+        
+        function addAIMessage(message) {
+            const chatMessages = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'flex items-start mb-4';
+            messageDiv.innerHTML = `
+                <div class="w-8 h-8 ayur-gradient rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                    <span class="text-white text-sm">🌿</span>
+                </div>
+                <div class="bg-gray-100 rounded-lg p-3 max-w-lg whitespace-pre-line" style="white-space:pre-line; word-break:break-word;">
+                    <span class="text-gray-800" style="font-family:inherit; font-size:1rem;">${escapeHtml(message)}</span>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            chatHistory.push({ type: 'ai', message: message });
+        }
+        
+        // Helper to escape HTML special characters
+        function escapeHtml(text) {
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+        
+        function simulateAIResponse(userMessage) {
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.classList.add('active');
+
+            fetch('/chat/api/gemini/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+             },
+                body: JSON.stringify({ message: userMessage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                typingIndicator.classList.remove('active');
+                addAIMessage(data.reply);
+            })
+            .catch(error => {
+                typingIndicator.classList.remove('active');
+                addAIMessage("Sorry, there was an error connecting to the AI.");
+            });
+        }
+        
+        function clearChat() {
+            const chatMessages = document.getElementById('chat-messages');
+            chatMessages.innerHTML = `
+                <div class="flex items-start mb-4">
+                    <div class="w-8 h-8 ayur-gradient rounded-full flex items-center justify-center mr-3 flex-shrink-0">
+                        <span class="text-white text-sm">🌿</span>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-3 max-w-xs">
+                        <p class="text-gray-800">Hello! I'm your AYUR Health Assistant. How can I help you today?</p>
+                    </div>
+                </div>
+            `;
+            chatHistory = [];
+        }
+        
+        // Medicine Tracker functionality
+        document.getElementById('medicine-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('medicine-name').value;
+            const dosage = document.getElementById('medicine-dosage').value;
+            const frequency = document.getElementById('medicine-frequency').value;
+            const startDate = document.getElementById('medicine-start').value;
+            const duration = document.getElementById('medicine-duration').value;
+            
+            if (name && dosage && frequency) {
+                addMedicine(name, dosage, frequency, startDate, duration);
+                this.reset();
+                showNotification('Medicine added successfully!', 'success');
+            }
+        });
+        
+        // Add medicine to backend
+        function addMedicineToBackend(name, dosage, frequency, startDate, duration) {
+            fetch('/chat/api/medicine/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, dosage, frequency, startDate, duration })
+            });
+        }
+
+        // Remove medicine from backend
+        function removeMedicineFromBackend(name) {
+            fetch('/chat/api/medicine/', {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name })
+            });
+        }
+
+        // Update your addMedicine and removeMedicine functions:
+        function addMedicine(name, dosage, frequency, startDate, duration) {
+            const medicinesList = document.getElementById('medicines-list');
+            const medicineCard = document.createElement('div');
+            medicineCard.className = 'medicine-card bg-gradient-to-r from-green-50 to-blue-50 border border-green-200 rounded-lg p-4';
+            
+            const frequencyText = frequency === 'once' ? 'Once daily' : 
+                                 frequency === 'twice' ? 'Twice daily' : 
+                                 frequency === 'thrice' ? 'Three times daily' : 'Custom';
+            
+            medicineCard.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h4 class="font-semibold text-gray-800">${name}</h4>
+                        <p class="text-sm text-gray-600">${dosage} • ${frequencyText}</p>
+                        <p class="text-xs text-gray-500 mt-1">Next dose: Today 2:00 PM</p>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="markTaken(this)" class="bg-green-500 text-white px-3 py-1 rounded-full text-xs hover:bg-green-600 transition-colors">
+                            Mark Taken
+                        </button>
+                        <button onclick="removeMedicine(this)" class="bg-red-500 text-white px-3 py-1 rounded-full text-xs hover:bg-red-600 transition-colors">
+                            Remove
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            medicinesList.appendChild(medicineCard);
+            addMedicineToBackend(name, dosage, frequency, startDate, duration);
+        }
+        
+        function markTaken(button) {
+            const card = button.closest('.medicine-card');
+            card.style.opacity = '0.6';
+            button.textContent = 'Taken ✓';
+            button.disabled = true;
+            button.classList.remove('bg-green-500', 'hover:bg-green-600');
+            button.classList.add('bg-gray-400');
+            
+            showNotification('Medicine marked as taken!', 'success');
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                button.textContent = 'Mark Taken';
+                button.disabled = false;
+                button.classList.remove('bg-gray-400');
+                button.classList.add('bg-green-500', 'hover:bg-green-600');
+            }, 3000);
+        }
+        
+        function removeMedicine(button) {
+            const card = button.closest('.medicine-card');
+            const name = card.querySelector('h4').textContent;
+            removeMedicineFromBackend(name);
+            card.style.transform = 'translateX(100%)';
+            card.style.opacity = '0';
+            setTimeout(() => {
+                card.remove();
+            }, 300);
+            showNotification('Medicine removed', 'info');
+        }
+        
+        function getRemedyDetails(type) {
+            const remedies = {
+                cold: "Cold & Cough Remedy:\n\n1. Mix 1 tsp honey + 1/2 tsp ginger juice + pinch of turmeric\n2. Take 3 times daily\n3. Drink warm water with lemon\n4. Gargle with salt water\n5. Steam inhalation with eucalyptus oil",
+                digestion: "Digestion Remedy:\n\n1. Drink warm water with lemon & ginger before meals\n2. Take Triphala powder before bed\n3. Eat mindfully and chew properly\n4. Avoid cold drinks with meals\n5. Include fennel seeds after meals",
+                stress: "Stress Relief Remedy:\n\n1. Practice deep breathing (4-7-8 technique)\n2. Drink Ashwagandha tea before bed\n3. Regular meditation (10-15 mins daily)\n4. Gentle yoga or stretching\n5. Brahmi oil head massage",
+                sleep: "Better Sleep Remedy:\n\n1. Warm milk with nutmeg & cardamom\n2. No screens 1 hour before bed\n3. Gentle yoga or meditation\n4. Regular sleep schedule\n5. Lavender oil on pillow",
+                joint: "Joint Pain Remedy:\n\n1. Warm sesame oil with turmeric massage\n2. Ginger tea 2-3 times daily\n3. Gentle stretching exercises\n4. Hot compress on affected area\n5. Avoid cold and damp environments",
+                skin: "Skin Care Remedy:\n\n1. Turmeric + honey + rose water face mask\n2. Apply 2-3 times weekly\n3. Drink plenty of water\n4. Include fresh fruits in diet\n5. Neem oil for acne spots"
+            };
+            
+            alert(remedies[type] || "Remedy details not available.");
+        }
+        
+        function showNotification(message, type = 'info') {
+            const container = document.getElementById('notification-container');
+            const notification = document.createElement('div');
+            
+            const bgColor = type === 'success' ? 'bg-green-500' : 
+                           type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+            
+            notification.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg reminder-notification`;
+            notification.textContent = message;
+            
+            container.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-btn').addEventListener('click', function() {
+            // Add mobile menu functionality here
+            alert('Mobile menu - implement as needed for Django');
+        });
+        
+        // Smooth scrolling for navigation
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+        
+        // Fade in animation on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.fade-in').forEach(el => {
+            observer.observe(el);
+        });
+        
+        // Initialize fade-in animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach((el, index) => {
+                setTimeout(() => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('visible');
+                    }
+                }, index * 100);
+            });
+        });
+        
+        // Simulate medicine reminders
+        setInterval(() => {
+            const medicines = ['Ashwagandha', 'Triphala', 'Brahmi', 'Turmeric'];
+            const randomMedicine = medicines[Math.floor(Math.random() * medicines.length)];
+            
+            if (Math.random() < 0.1) { // 10% chance every interval
+                showNotification(`Time to take your ${randomMedicine}!`, 'info');
+            }
+        }, 30000); // Check every 30 seconds
+
+        document.addEventListener('DOMContentLoaded', () => {
+    fetch('/chat/api/medicine/')
+        .then(response => response.json())
+        .then(data => {
+            data.medicines.forEach(med => {
+                addMedicine(med.name, med.dosage, med.frequency, med.startDate, med.duration);
+            });
+        });
+});
+    </script>
+
+</html>

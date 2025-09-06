@@ -5,12 +5,12 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import os
 from langchain.chat_models import ChatOpenAI
-
+load_dotenv()
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
 
 genai.configure(api_key=GOOGLE_API_KEY)
 
-model = genai.GenerativeModel()
+model = genai.GenerativeModel(model_name="gemini-2.0-flash")
 chat=model.start_chat(history=[])
 
 from langchain.schema import(
