@@ -1,13 +1,15 @@
 {
-    "builds": [{
-      "src": "ayur/wsgi.py",
+  "builds": [
+    {
+      "src": "wsgi_handler.py",
       "use": "@vercel/python",
-      "config": { "maxLambdaSize": "15mb", "runtime": "python3.11.5" }
-    }],
-    "routes": [
-      {
-        "src": "/(.*)",
-        "dest": "ayur/wsgi.py"
-      }
-    ]
+      "config": { "maxLambdaSize": "15mb", "runtime": "python3.11" }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "wsgi_handler.py"
+    }
+  ]
 }
